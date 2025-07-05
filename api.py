@@ -1,20 +1,20 @@
 # Чтобы запустить гифты, нужно создать сессию через файл session.py (все создастся автоматически)
-from typing import List, Optional, Dict, Any, Union
-import asyncio
-import json
 import base64
-import re
 import io
+import json
 import logging
-from fastapi import FastAPI, HTTPException, Request
-from pydantic import BaseModel, field_validator
+import re
+from typing import List, Optional, Dict, Any, Union
+
 import aiohttp
-from tonsdk.boc import Cell
 import tonutils.client
 import tonutils.wallet
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, field_validator
 from pyrogram import Client
-from pyrogram.errors import StargiftUsageLimited
 from pyrogram.enums import ChatType
+from pyrogram.errors import StargiftUsageLimited
+from tonsdk.boc import Cell
 
 MNEMONIC: List[str] = [
 
@@ -32,10 +32,12 @@ FRAGMENT_HEADERS = {
     "Content-Type": "application/x-www-form-urlencoded"
 }
 
+
 def strip_html_tags(text: str) -> str:
     text = re.sub(r"<[^>]+>", "", text)
     text = re.sub(r"&nbsp;?", " ", text)
     return text.strip()
+
 
 def clean_and_filter(obj: Union[Dict, List, str, int, float, None]) -> Union[Dict, List, str, int, float, None]:
     if isinstance(obj, dict):
@@ -51,6 +53,7 @@ def clean_and_filter(obj: Union[Dict, List, str, int, float, None]) -> Union[Dic
     if isinstance(obj, str):
         return strip_html_tags(obj)
     return obj
+
 
 class WalletManager:
     def __init__(self, api_key: str, mnemonic: List[str]):
@@ -90,6 +93,7 @@ class WalletManager:
         if self.ton_client and hasattr(self.ton_client, "_session"):
             await self.ton_client._session.close()
 
+
 def decode_payload_b64(payload: str) -> str:
     try:
         payload += "=" * (-len(payload) % 4)
@@ -98,6 +102,7 @@ def decode_payload_b64(payload: str) -> str:
         return sl.read_string().strip()
     except Exception as e:
         return f"decode_error: {e}"
+
 
 def decode_payload_b64_premium(payload: str) -> str:
     try:
@@ -113,6 +118,7 @@ def decode_payload_b64_premium(payload: str) -> str:
         return filtered
     except Exception as e:
         return f"decode_error: {e}"
+
 
 async def buy_stars_logic(login: str, quantity: int, hide_sender: int) -> Dict[str, Any]:
     wm = WalletManager(TONAPI_KEY, MNEMONIC)
@@ -147,7 +153,8 @@ async def buy_stars_logic(login: str, quantity: int, hide_sender: int) -> Dict[s
             "appName": "telegram-wallet",
             "appVersion": "1",
             "maxProtocolVersion": 2,
-            "features": ["SendTransaction", {"name": "SendTransaction", "maxMessages": 4, "extraCurrencySupported": True}]
+            "features": ["SendTransaction",
+                         {"name": "SendTransaction", "maxMessages": 4, "extraCurrencySupported": True}]
         }
         data5 = {
             "account": json.dumps(account),
@@ -173,6 +180,7 @@ async def buy_stars_logic(login: str, quantity: int, hide_sender: int) -> Dict[s
         results["transfers"] = transfers
     await wm.close()
     return clean_and_filter(results)
+
 
 async def buy_premium_logic(login: str, months: int, hide_sender: int) -> Dict[str, Any]:
     wm = WalletManager(TONAPI_KEY, MNEMONIC)
@@ -206,7 +214,8 @@ async def buy_premium_logic(login: str, months: int, hide_sender: int) -> Dict[s
             "appName": "telegram-wallet",
             "appVersion": "1",
             "maxProtocolVersion": 2,
-            "features": ["SendTransaction", {"name": "SendTransaction", "maxMessages": 4, "extraCurrencySupported": True}]
+            "features": ["SendTransaction",
+                         {"name": "SendTransaction", "maxMessages": 4, "extraCurrencySupported": True}]
         }
         data4 = {
             "account": json.dumps(account),
@@ -233,6 +242,7 @@ async def buy_premium_logic(login: str, months: int, hide_sender: int) -> Dict[s
     await wm.close()
     return clean_and_filter(results)
 
+
 class BuyStarsRequest(BaseModel):
     username: str
     quantity: int
@@ -251,6 +261,7 @@ class BuyStarsRequest(BaseModel):
         if v not in (0, 1):
             raise ValueError("hide_sender must be 0 or 1")
         return v
+
 
 class BuyPremiumRequest(BaseModel):
     username: str
@@ -271,20 +282,25 @@ class BuyPremiumRequest(BaseModel):
             raise ValueError("hide_sender must be 0 or 1")
         return v
 
+
 class GiftRequest(BaseModel):
     username: str
     gift_id: int
     num_gifts: int
 
+
 app = FastAPI()
+
 
 @app.post("/api/buyStars")
 async def handle_buy_stars(data: BuyStarsRequest):
     return await buy_stars_logic(data.username, data.quantity, data.hide_sender)
 
+
 @app.post("/api/buyPremium")
 async def handle_buy_premium(data: BuyPremiumRequest):
     return await buy_premium_logic(data.username, data.months, data.hide_sender)
+
 
 @app.post("/gifts")
 async def send_gifts_endpoint(data: GiftRequest):
