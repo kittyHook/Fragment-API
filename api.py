@@ -173,7 +173,10 @@ async def buy_stars_logic(login: str, quantity: int, hide_sender: int) -> Dict[s
         transfers = []
         for msg in raw5["transaction"].get("messages", []):
             addr = msg["address"]
-            amount_ton = msg["amount"] / 1e9
+            if isinstance(msg['amount'], str):
+                amount_ton = int(msg["amount"]) / 1e9
+            else:
+                amount_ton = msg["amount"] / 1e9
             raw_payload = msg.get("payload", "")
             decoded = decode_payload_b64(raw_payload)
             transfers.append(await wm.transfer(addr, amount_ton, decoded))
