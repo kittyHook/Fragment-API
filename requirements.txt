@@ -3,5 +3,5 @@ pydantic~=2.11.7
 aiohttp<=3.12,>3.11
 tonsdk~=1.0.15
 tonutils~=0.5.0
-pyrogram~=2.0.106
+pyrofork~=2.3.67
 uvicorn~=0.35.0
