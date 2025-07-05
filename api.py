@@ -64,7 +64,7 @@ class WalletManager:
 
     async def init_wallet(self):
         self.ton_client = tonutils.client.TonapiClient(api_key=self.api_key)
-        self.wallet, _, _, _ = tonutils.wallet.WalletV4R2.from_mnemonic(
+        self.wallet, _, _, _ = tonutils.wallet.WalletV4R2.from_mnemonic(  # Replace V4R2 with your wallet's version
             self.ton_client, mnemonic=self.mnemonic
         )
 
