@@ -1,4 +1,4 @@
-# Чтобы запустить гифты нужно создать сессию через файл session.py ( все создастся автоматически )
+# Чтобы запустить гифты, нужно создать сессию через файл session.py (все создастся автоматически)
 from typing import List, Optional, Dict, Any, Union
 import asyncio
 import json
@@ -17,7 +17,7 @@ from pyrogram.errors import StargiftUsageLimited
 from pyrogram.enums import ChatType
 
 MNEMONIC: List[str] = [
-    
+
 ]
 
 TONAPI_KEY = ""
